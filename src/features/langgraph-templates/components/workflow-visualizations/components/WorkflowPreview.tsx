@@ -232,7 +232,7 @@ export function WorkflowPreview({ agents, workflow, className = '' }: WorkflowPr
 
       {/* Mode Indicator */}
       <div className="mt-3 text-xs text-gray-400 text-center">
-        {isDetailedMode ? 'Detailed View' : 'Overview Mode'}
+        {isDetailedMode ? '' : 'Overview Mode'}
       </div>
     </div>
   );
