@@ -123,7 +123,7 @@ function App() {
                 path="/templates/:templateId"
                 element={
                   <ProtectedRoute>
-                    <DashboardLayout title="Template Details">
+                    <DashboardLayout title="Template">
                       <TemplateDetailPage />
                     </DashboardLayout>
                   </ProtectedRoute>

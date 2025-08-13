@@ -48,16 +48,45 @@ function validateDependencyReferences(agents: Agent[]): ValidationError[] {
 }
 
 /**
+ * Helper function to extract parallel groups from graph structure
+ */
+function extractParallelGroupsFromGraph(workflow: WorkflowConfig): string[][] {
+  if (!workflow.graph_structure) return [];
+  
+  const graph = workflow.graph_structure;
+  const parallelGroups: string[][] = [];
+  
+  // Find nodes that start from 'start' node (parallel execution)
+  const startEdges = graph.edges.filter(edge => edge.from_node === 'start');
+  if (startEdges.length > 1) {
+    // Multiple edges from start = parallel execution
+    const parallelAgents = startEdges.map(edge => edge.to_node);
+    parallelGroups.push(parallelAgents);
+  } else {
+    // Single group with all agents
+    const agentNodes = graph.nodes.filter(node => !['start', 'end'].includes(node));
+    if (agentNodes.length > 0) {
+      parallelGroups.push(agentNodes);
+    }
+  }
+  
+  return parallelGroups;
+}
+
+/**
  * 8. Workflow Mode Consistency
- * Updated to be more lenient during mode transitions and focus on required fields
+ * Updated to handle both legacy and modern workflow configurations
  */
 function validateModeConsistency(workflow: WorkflowConfig): ValidationError[] {
   const errors: ValidationError[] = [];
   
   switch (workflow.mode) {
-    case 'sequential':
-      // For sequential mode, focus on required fields, not conflicting ones
-      // Don't error on other mode fields being present - they'll be ignored
+    case 'sequential': {
+      // Sequential mode can use graph_structure (modern approach) or sequence (legacy)
+      const hasSequence = workflow.sequence && workflow.sequence.length > 0;
+      const hasGraphStructure = workflow.graph_structure && workflow.graph_structure.nodes.length > 0;
+      
+      // Warn about unused legacy configurations
       if (workflow.parallel_groups && workflow.parallel_groups.length > 0) {
         errors.push({
           field: 'workflow.parallel_groups',
@@ -74,18 +103,46 @@ function validateModeConsistency(workflow: WorkflowConfig): ValidationError[] {
           severity: 'warning'
         });
       }
-      break;
       
-    case 'parallel':
-      // For parallel mode, we need parallel_groups
-      if (!workflow.parallel_groups || workflow.parallel_groups.length === 0) {
+      // Sequential mode is valid with either sequence OR graph_structure
+      if (!hasSequence && !hasGraphStructure) {
         errors.push({
-          field: 'workflow.parallel_groups',
-          message: 'Parallel mode requires parallel_groups configuration',
+          field: 'workflow.sequence',
+          message: 'Sequential mode requires either sequence or graph_structure configuration',
           type: 'required',
           severity: 'error'
         });
       }
+      break;
+    }
+      
+    case 'parallel': {
+      // For parallel mode, we accept either parallel_groups OR graph_structure
+      const hasParallelGroups = workflow.parallel_groups && workflow.parallel_groups.length > 0;
+      const hasGraphStructure = workflow.graph_structure && workflow.graph_structure.nodes.length > 0;
+      
+      if (!hasParallelGroups && !hasGraphStructure) {
+        errors.push({
+          field: 'workflow.parallel_groups',
+          message: 'Parallel mode requires either parallel_groups or graph_structure configuration',
+          type: 'required',
+          severity: 'error'
+        });
+      }
+      
+      // If using graph_structure, validate it can be used for parallel execution
+      if (hasGraphStructure && !hasParallelGroups) {
+        const extractedGroups = extractParallelGroupsFromGraph(workflow);
+        if (extractedGroups.length === 0) {
+          errors.push({
+            field: 'workflow.graph_structure',
+            message: 'Graph structure does not define valid parallel execution paths',
+            type: 'custom',
+            severity: 'error'
+          });
+        }
+      }
+      
       // Don't error on other mode fields - just warn they'll be ignored
       if (workflow.sequence && workflow.sequence.length > 0) {
         errors.push({
@@ -104,14 +161,14 @@ function validateModeConsistency(workflow: WorkflowConfig): ValidationError[] {
         });
       }
       break;
+    }
       
-    case 'conditional':
-      // For conditional mode, we need conditions or agent dependencies
-      if ((!workflow.conditions || Object.keys(workflow.conditions).length === 0)) {
-        // Check if agents have dependencies as an alternative
-        // This will be validated in the agent validation section
-      }
-      // Don't error on other mode fields - just warn they'll be ignored
+    case 'conditional': {
+      // Conditional mode can use graph_structure (modern) or conditions/dependencies (legacy)
+      const hasConditions = workflow.conditions && Object.keys(workflow.conditions).length > 0;
+      const hasGraphStructure = workflow.graph_structure && workflow.graph_structure.nodes.length > 0;
+      
+      // Warn about unused legacy configurations
       if (workflow.sequence && workflow.sequence.length > 0) {
         errors.push({
           field: 'workflow.sequence',
@@ -128,23 +185,70 @@ function validateModeConsistency(workflow: WorkflowConfig): ValidationError[] {
           severity: 'warning'
         });
       }
-      break;
       
-    case 'langgraph':
-      // For LangGraph mode, we need graph_structure
-      if (!workflow.graph_structure) {
+      // Conditional mode is valid with either conditions OR graph_structure
+      // Agent dependencies will be validated separately
+      if (!hasConditions && !hasGraphStructure) {
         errors.push({
-          field: 'workflow.graph_structure',
-          message: 'LangGraph mode requires graph_structure configuration',
+          field: 'workflow.conditions',
+          message: 'Conditional mode requires either conditions or graph_structure configuration',
           type: 'required',
           severity: 'error'
         });
       }
+      break;
+    }
+      
+    case 'langgraph': {
+      // NOTE: LangGraph mode is mapped to 'conditional' for backend execution
+      // This validation ensures custom workflows have proper graph structure
+      if (!workflow.graph_structure) {
+        errors.push({
+          field: 'workflow.graph_structure',
+          message: 'Custom workflow requires graph_structure configuration',
+          type: 'required',
+          severity: 'error'
+        });
+      } else {
+        // Additional validation for custom workflows
+        const hasNodes = workflow.graph_structure.nodes && workflow.graph_structure.nodes.length > 0;
+        const hasEdges = workflow.graph_structure.edges && workflow.graph_structure.edges.length > 0;
+        const hasEntryPoint = workflow.graph_structure.entry_point;
+        
+        if (!hasNodes) {
+          errors.push({
+            field: 'workflow.graph_structure.nodes',
+            message: 'Custom workflow requires at least one node in graph structure',
+            type: 'required',
+            severity: 'error'
+          });
+        }
+        
+        if (!hasEntryPoint) {
+          errors.push({
+            field: 'workflow.graph_structure.entry_point',
+            message: 'Custom workflow requires an entry point',
+            type: 'required',
+            severity: 'error'
+          });
+        }
+        
+        // For custom workflows, edges are optional initially but warn if missing
+        if (!hasEdges) {
+          errors.push({
+            field: 'workflow.graph_structure.edges',
+            message: 'Custom workflow has no connections between agents - add edges to define workflow flow',
+            type: 'custom',
+            severity: 'warning'
+          });
+        }
+      }
+      
       // Legacy configurations are just warnings, not errors
       if (workflow.sequence && workflow.sequence.length > 0) {
         errors.push({
           field: 'workflow.sequence',
-          message: 'LangGraph mode should not use legacy sequence configuration',
+          message: 'Custom workflow should not use legacy sequence configuration',
           type: 'custom',
           severity: 'warning'
         });
@@ -152,12 +256,13 @@ function validateModeConsistency(workflow: WorkflowConfig): ValidationError[] {
       if (workflow.parallel_groups && workflow.parallel_groups.length > 0) {
         errors.push({
           field: 'workflow.parallel_groups',
-          message: 'LangGraph mode should not use legacy parallel_groups configuration',
+          message: 'Custom workflow should not use legacy parallel_groups configuration',
           type: 'custom',
           severity: 'warning'
         });
       }
       break;
+    }
   }
   
   return errors;
@@ -408,8 +513,142 @@ function validateHITLConflicts(workflow: WorkflowConfig, agents: Agent[]): Valid
 }
 
 /**
+ * 13. LangGraph Structure Validation
+ * Validates LangGraph-native workflow structures
+ */
+function validateLangGraphStructure(template: Template): ValidationError[] {
+  const errors: ValidationError[] = [];
+  
+  if (template.workflow.mode !== 'langgraph') {
+    return errors; // Only validate LangGraph mode
+  }
+  
+  const graph = template.workflow.graph_structure;
+  if (!graph) {
+    errors.push({
+      field: 'workflow.graph_structure',
+      message: 'LangGraph mode requires graph_structure',
+      type: 'required',
+      severity: 'error'
+    });
+    return errors;
+  }
+  
+  const agentIds = new Set(template.agents.map(a => a.id).filter(Boolean) as string[]);
+  
+  // Validate entry point
+  if (!graph.entry_point) {
+    errors.push({
+      field: 'workflow.graph_structure.entry_point',
+      message: 'Graph structure missing entry_point',
+      type: 'required',
+      severity: 'error'
+    });
+  } else if (!agentIds.has(graph.entry_point)) {
+    errors.push({
+      field: 'workflow.graph_structure.entry_point',
+      message: `Entry point '${graph.entry_point}' must be a valid agent ID`,
+      type: 'custom',
+      severity: 'error'
+    });
+  }
+  
+  // Validate nodes (should only contain agent IDs)
+  graph.nodes.forEach((nodeId, index) => {
+    if (!agentIds.has(nodeId)) {
+      errors.push({
+        field: `workflow.graph_structure.nodes[${index}]`,
+        message: `Node '${nodeId}' must be a valid agent ID`,
+        type: 'custom',
+        severity: 'error'
+      });
+    }
+  });
+  
+  // Validate edges (can reference virtual nodes like 'start', 'end')
+  graph.edges.forEach((edge, index) => {
+    // Validate from_node
+    if (!agentIds.has(edge.from_node) && 
+        !['start', 'end'].includes(edge.from_node) && 
+        !edge.from_node.startsWith('parallel_')) {
+      errors.push({
+        field: `workflow.graph_structure.edges[${index}].from_node`,
+        message: `Edge from_node '${edge.from_node}' must be a valid agent ID or virtual node`,
+        type: 'custom',
+        severity: 'error'
+      });
+    }
+    
+    // Validate to_node
+    if (!agentIds.has(edge.to_node) && 
+        !['start', 'end'].includes(edge.to_node) && 
+        !edge.to_node.startsWith('parallel_')) {
+      errors.push({
+        field: `workflow.graph_structure.edges[${index}].to_node`,
+        message: `Edge to_node '${edge.to_node}' must be a valid agent ID or virtual node`,
+        type: 'custom',
+        severity: 'error'
+      });
+    }
+    
+    // Validate edge has required fields
+    if (!edge.edge_id) {
+      errors.push({
+        field: `workflow.graph_structure.edges[${index}].edge_id`,
+        message: 'Edge must have an edge_id',
+        type: 'required',
+        severity: 'error'
+      });
+    }
+    
+    if (!edge.condition_type) {
+      errors.push({
+        field: `workflow.graph_structure.edges[${index}].condition_type`,
+        message: 'Edge must have a condition_type',
+        type: 'required',
+        severity: 'error'
+      });
+    }
+  });
+  
+  // Check for unreachable nodes (warning only)
+  const reachableNodes = new Set<string>();
+  const toVisit = [graph.entry_point];
+  
+  while (toVisit.length > 0) {
+    const current = toVisit.pop()!;
+    if (reachableNodes.has(current)) continue;
+    
+    reachableNodes.add(current);
+    
+    // Find all nodes reachable from current
+    graph.edges.forEach(edge => {
+      if (edge.from_node === current && !reachableNodes.has(edge.to_node)) {
+        toVisit.push(edge.to_node);
+      }
+    });
+  }
+  
+  // Check for unreachable agent nodes
+  const unreachableAgents = [...agentIds].filter(agentId => !reachableNodes.has(agentId));
+  if (unreachableAgents.length > 0) {
+    unreachableAgents.forEach(agentId => {
+      const agent = template.agents.find(a => a.id === agentId);
+      errors.push({
+        field: 'workflow.graph_structure',
+        message: `Unreachable nodes detected: ${agent?.name || agentId}`,
+        type: 'custom',
+        severity: 'warning'
+      });
+    });
+  }
+  
+  return errors;
+}
+
+/**
  * 1-6. Basic Workflow Validations
- * Existing validations for cycles, self-refs, etc.
+ * Updated to handle LangGraph mode properly
  */
 function validateBasicWorkflow(template: Template): ValidationError[] {
   const errors: ValidationError[] = [];
@@ -433,7 +672,13 @@ function validateBasicWorkflow(template: Template): ValidationError[] {
     });
   }
 
-  // Mode-specific validation
+  // Mode-specific validation (skip legacy modes if using LangGraph)
+  if (template.workflow.mode === 'langgraph') {
+    // LangGraph validation is handled separately
+    return errors;
+  }
+
+  // Legacy mode validations
   if (template.workflow.mode === 'sequential') {
     if (!template.workflow.sequence || template.workflow.sequence.length === 0) {
       errors.push({
@@ -453,10 +698,14 @@ function validateBasicWorkflow(template: Template): ValidationError[] {
   }
 
   if (template.workflow.mode === 'parallel') {
-    if (!template.workflow.parallel_groups || template.workflow.parallel_groups.length === 0) {
+    // Accept either parallel_groups OR graph_structure for parallel workflows
+    const hasParallelGroups = template.workflow.parallel_groups && template.workflow.parallel_groups.length > 0;
+    const hasGraphStructure = template.workflow.graph_structure && template.workflow.graph_structure.nodes.length > 0;
+    
+    if (!hasParallelGroups && !hasGraphStructure) {
       errors.push({
         field: 'workflow.parallel_groups',
-        message: 'Parallel workflow must have at least one group',
+        message: 'Parallel workflow requires either parallel_groups or graph_structure configuration',
         type: 'required',
         severity: 'error'
       });
@@ -542,6 +791,9 @@ export function validateWorkflow(template: Template): ValidationResult {
   
   // 12: HITL intervention conflicts
   errors.push(...validateHITLConflicts(template.workflow, template.agents));
+  
+  // 13: LangGraph structure validation
+  errors.push(...validateLangGraphStructure(template));
   
   // Separate warnings from errors
   const actualErrors = errors.filter(e => e.severity !== 'warning');

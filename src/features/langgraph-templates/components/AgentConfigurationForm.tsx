@@ -43,8 +43,7 @@ import type {
 
 import {
   AGENT_TYPE_CONFIGS,
-  LLM_MODEL_CONFIGS,
-  DEFAULT_AGENT
+  LLM_MODEL_CONFIGS
 } from '../types';
 
 interface AgentConfigurationFormV2Props {
@@ -65,12 +64,10 @@ function AgentConfigurationForm({
 }: AgentConfigurationFormV2Props) {
   const [activeAgentIndex, setActiveAgentIndex] = useState<number>(0);
 
-  // Ensure we have at least one agent
+  // Ensure we have at least one agent - let the hook handle proper naming
   React.useEffect(() => {
     if (agents.length === 0) {
       onAddAgent({
-        ...DEFAULT_AGENT,
-        name: 'Research Agent',
         type: 'research',
         system_prompt: AGENT_TYPE_CONFIGS.research.defaultSystemPrompt,
         user_prompt: AGENT_TYPE_CONFIGS.research.defaultUserPrompt,

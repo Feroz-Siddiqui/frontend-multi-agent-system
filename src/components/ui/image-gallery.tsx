@@ -132,6 +132,7 @@ export function EnhancedImageGallery({
   };
 
   const openGallery = (index: number) => {
+    console.log('Opening gallery at index:', index); // Debug log
     setCurrentIndex(index);
     setIsOpen(true);
   };
@@ -150,15 +151,30 @@ export function EnhancedImageGallery({
     const [isHovered, setIsHovered] = useState(false);
     const state = imageStates[index] || { loaded: false, error: false };
 
+    const handleClick = (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log('ImagePreview clicked:', { index, src }); // Debug log
+      onClick();
+    };
+
     return (
-      <div 
+      <div
         className="relative aspect-square cursor-pointer overflow-hidden transition-all duration-200 bg-background border rounded-lg"
         style={{
           boxShadow: isHovered ? '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)' : undefined
         }}
-        onClick={() => onClick()}
+        onClick={handleClick}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleClick(e as unknown as React.MouseEvent);
+          }
+        }}
       >
         {!state.loaded && (
           <Skeleton className="w-full h-full rounded-lg" />
@@ -207,6 +223,7 @@ export function EnhancedImageGallery({
             opacity: isHovered ? 1 : 0
           }}
           onClick={(e) => {
+            e.preventDefault();
             e.stopPropagation();
             downloadImage(src, index);
           }}
@@ -268,8 +285,11 @@ export function EnhancedImageGallery({
       </div>
 
       {/* Lightbox Modal */}
-      <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="max-w-7xl w-full h-[95vh] p-0 gap-0 flex flex-col [&>button]:hidden">
+      <Dialog open={isOpen} onOpenChange={(open) => {
+        console.log('Dialog onOpenChange:', open); // Debug log
+        setIsOpen(open);
+      }}>
+        <DialogContent className="max-w-7xl w-full h-[95vh] p-0 gap-0 flex flex-col [&>button]:hidden" style={{ zIndex: 9999 }}>
           <DialogTitle className="sr-only">{title} Gallery</DialogTitle>
           <DialogDescription className="sr-only">
             View and navigate through {images.length} image{images.length !== 1 ? 's' : ''} in full screen

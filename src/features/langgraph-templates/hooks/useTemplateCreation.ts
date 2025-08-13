@@ -184,15 +184,15 @@ export function useTemplateCreation(options: UseTemplateCreationOptions = {}): U
   }, [calculateWorkflowTimeout]);
 
   const addAgent = useCallback((agentData: Partial<Agent> = {}) => {
-    const newAgent: Agent = {
-      ...DEFAULT_AGENT,
-      // Generate temporary ID for frontend validation - backend will replace with real ID
-      id: `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      name: `Agent ${template.agents.length + 1}`,
-      ...agentData,
-    };
-
     setTemplate(prev => {
+      const newAgent: Agent = {
+        ...DEFAULT_AGENT,
+        // Generate temporary ID for frontend validation - backend will replace with real ID
+        id: `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        name: `Agent ${prev.agents.length + 1}`,
+        ...agentData,
+      };
+
       const newAgents = [...prev.agents, newAgent];
       const newWorkflow = { ...prev.workflow };
       
@@ -223,7 +223,7 @@ export function useTemplateCreation(options: UseTemplateCreationOptions = {}): U
         workflow: newWorkflow,
       };
     });
-  }, [template.agents.length, calculateWorkflowTimeout]);
+  }, [createSmartGroups, calculateWorkflowTimeout]);
 
   const reorderAgents = useCallback((fromIndex: number, toIndex: number) => {
     setTemplate(prev => {

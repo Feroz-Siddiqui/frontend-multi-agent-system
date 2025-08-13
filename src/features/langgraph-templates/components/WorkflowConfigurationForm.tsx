@@ -1,17 +1,16 @@
 /**
- * Enhanced Workflow Configuration Form
+ * Unified Workflow Configuration Form
  * 
- * Complete redesign with:
- * 1. Shadcn Tabs instead of dropdowns
- * 2. Top-positioned validation errors
- * 3. Complete backend field coverage
- * 4. Smart validation with auto-fixes
- * 5. Modular, maintainable components
+ * Complete redesign with unified React Flow system:
+ * - No more confusing tabs
+ * - Single professional workflow builder
+ * - All workflow types in one interface
+ * - One-click template creation
+ * - Visual drag-and-drop workflow design
  */
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../components/ui/tabs';
 import { Button } from '../../../components/ui/button';
 import { Alert, AlertDescription } from '../../../components/ui/alert';
 import { Input } from '../../../components/ui/input';
@@ -26,32 +25,23 @@ import {
   SelectValue,
 } from '../../../components/ui/select';
 import { 
-  Settings, 
   CheckCircle, 
   AlertTriangle,
-  ArrowUpDown,
-  Layers,
-  GitBranch,
-  Network,
   User,
-  Shield
+  Shield,
+  Workflow
 } from 'lucide-react';
 
 import type {
   WorkflowConfig,
   Agent,
   Template,
-  WorkflowMode,
-  CompletionStrategy,
   InterventionType,
 } from '../types';
 
 import { validateWorkflow } from '../utils/workflow-validation';
 import type { ValidationResult } from '../utils/workflow-validation';
-import SequentialWorkflowVisualization from './workflow-visualizations/SequentialWorkflowVisualization';
-import ParallelWorkflowVisualization from './workflow-visualizations/ParallelWorkflowVisualization';
-import ConditionalWorkflowVisualization from './workflow-visualizations/ConditionalWorkflowVisualization';
-import LangGraphWorkflowVisualization from './workflow-visualizations/LangGraphWorkflowVisualization';
+import { MergedWorkflowBuilder } from './workflow-visualizations/components/MergedWorkflowBuilder';
 
 interface WorkflowConfigurationFormProps {
   workflow: WorkflowConfig;
@@ -60,6 +50,8 @@ interface WorkflowConfigurationFormProps {
   onUpdateWorkflow: (updates: Partial<WorkflowConfig>) => void;
   onUpdateTemplate: (updates: Partial<Template>) => void;
   onUpdateAgent: (index: number, updates: Partial<Agent>) => void;
+  onRemoveAgent?: (index: number) => void;
+  onAddAgent?: (agent?: Partial<Agent>) => void;
   validation: ValidationResult;
 }
 
@@ -115,92 +107,6 @@ export function WorkflowConfigurationForm({
       onUpdateWorkflow(updates as Partial<WorkflowConfig>);
     }
   };
-
-  // Handle mode change with complete state replacement for robust tab switching
-  const handleModeChange = (value: string) => {
-    const mode = value as WorkflowMode;
-    const agentIds = agents.map(agent => agent.id || agent.name).filter(Boolean);
-    
-    // Preserve non-mode-specific settings
-    const baseWorkflow = {
-      mode,
-      timeout_seconds: workflow.timeout_seconds || 1800,
-      failure_threshold: workflow.failure_threshold,
-      retry_failed_agents: workflow.retry_failed_agents ?? false,
-      continue_on_failure: workflow.continue_on_failure ?? true,
-      enable_checkpointing: workflow.enable_checkpointing ?? true,
-      enable_streaming: workflow.enable_streaming ?? true,
-      enable_time_travel: workflow.enable_time_travel ?? true,
-    };
-
-    // Build completely new workflow object based on mode - no partial updates
-    let newWorkflow: WorkflowConfig;
-    
-    switch (mode) {
-      case 'sequential':
-        newWorkflow = {
-          ...baseWorkflow,
-          sequence: agentIds.length > 0 ? agentIds : [],
-          max_concurrent_agents: 1,
-          completion_strategy: 'all' as CompletionStrategy,
-          // Only sequential-specific fields - no other mode fields
-        } as WorkflowConfig;
-        break;
-        
-      case 'parallel':
-        newWorkflow = {
-          ...baseWorkflow,
-          parallel_groups: agentIds.length > 0 ? [agentIds] : [[]],
-          max_concurrent_agents: Math.min(agents.length || 1, 3),
-          completion_strategy: (workflow.completion_strategy as CompletionStrategy) || 'all',
-          required_completions: workflow.completion_strategy === 'threshold' ? workflow.required_completions : undefined,
-          // Only parallel-specific fields - no other mode fields
-        } as WorkflowConfig;
-        break;
-        
-      case 'conditional':
-        newWorkflow = {
-          ...baseWorkflow,
-          conditions: {},
-          max_concurrent_agents: Math.min(agents.length || 1, 3),
-          completion_strategy: 'all' as CompletionStrategy,
-          // Only conditional-specific fields - no other mode fields
-        } as WorkflowConfig;
-        break;
-        
-      case 'langgraph':
-        newWorkflow = {
-          ...baseWorkflow,
-          entry_point: agents.length > 0 ? agentIds[0] : undefined,
-          max_concurrent_agents: Math.min(agents.length || 1, 3),
-          completion_strategy: 'all' as CompletionStrategy,
-          // Initialize basic graph structure for LangGraph mode
-          graph_structure: agents.length > 0 ? {
-            nodes: agentIds,
-            edges: [],
-            entry_point: agentIds[0],
-            exit_points: [agentIds[agentIds.length - 1]],
-            validation_errors: []
-          } : undefined,
-          // Only langgraph-specific fields - no other mode fields
-        } as WorkflowConfig;
-        break;
-        
-      default:
-        // Fallback to sequential if unknown mode
-        newWorkflow = {
-          ...baseWorkflow,
-          mode: 'sequential',
-          sequence: agentIds.length > 0 ? agentIds : [],
-          max_concurrent_agents: 1,
-          completion_strategy: 'all' as CompletionStrategy,
-        } as WorkflowConfig;
-    }
-
-    // Replace entire workflow object to ensure clean state
-    onUpdateWorkflow(newWorkflow);
-  };
-
 
   // HITL configuration
   const toggleHITL = (agentIndex: number, enabled: boolean) => {
@@ -289,75 +195,21 @@ export function WorkflowConfigurationForm({
         </Alert>
       )}
 
-      {/* MAIN WORKFLOW CONFIGURATION WITH SHADCN TABS */}
+      {/* UNIFIED WORKFLOW BUILDER - NO MORE TABS! */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Settings className="h-5 w-5" />
-            Workflow Configuration
+            <Workflow className="h-5 w-5" />
+            Professional Workflow Builder
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <Tabs value={workflow.mode} onValueChange={handleModeChange} className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="sequential" className="flex items-center gap-2">
-                <ArrowUpDown className="h-4 w-4" />
-                Sequential
-              </TabsTrigger>
-              <TabsTrigger value="parallel" className="flex items-center gap-2">
-                <Layers className="h-4 w-4" />
-                Parallel
-              </TabsTrigger>
-              <TabsTrigger value="conditional" className="flex items-center gap-2">
-                <GitBranch className="h-4 w-4" />
-                Conditional
-              </TabsTrigger>
-              <TabsTrigger value="langgraph" className="flex items-center gap-2">
-                <Network className="h-4 w-4" />
-                LangGraph
-              </TabsTrigger>
-            </TabsList>
-
-            {/* SEQUENTIAL MODE TAB */}
-            <TabsContent value="sequential" className="space-y-4">
-              <SequentialWorkflowVisualization
-                agents={agents}
-                workflow={workflow}
-                onUpdateWorkflow={onUpdateWorkflow}
-                onUpdateAgent={onUpdateAgent}
-              />
-            </TabsContent>
-
-            {/* PARALLEL MODE TAB */}
-            <TabsContent value="parallel" className="space-y-4">
-              <ParallelWorkflowVisualization
-                agents={agents}
-                workflow={workflow}
-                onUpdateWorkflow={onUpdateWorkflow}
-                onUpdateAgent={onUpdateAgent}
-              />
-            </TabsContent>
-
-            {/* CONDITIONAL MODE TAB */}
-            <TabsContent value="conditional" className="space-y-4">
-              <ConditionalWorkflowVisualization
-                agents={agents}
-                workflow={workflow}
-                onUpdateWorkflow={onUpdateWorkflow}
-                onUpdateAgent={onUpdateAgent}
-              />
-            </TabsContent>
-
-            {/* LANGGRAPH NATIVE MODE TAB */}
-            <TabsContent value="langgraph" className="space-y-4">
-              <LangGraphWorkflowVisualization
-                agents={agents}
-                workflow={workflow}
-                onUpdateWorkflow={onUpdateWorkflow}
-                onUpdateAgent={onUpdateAgent}
-              />
-            </TabsContent>
-          </Tabs>
+          <MergedWorkflowBuilder
+            agents={agents}
+            workflow={workflow}
+            onUpdateWorkflow={onUpdateWorkflow}
+            onUpdateAgents={() => {}} // TODO: Add agent update handler
+          />
         </CardContent>
       </Card>
 

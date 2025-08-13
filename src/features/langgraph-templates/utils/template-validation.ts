@@ -564,8 +564,8 @@ function validateWorkflowModeSpecific(
         workflow.parallel_groups.forEach((group, groupIndex) => {
           if (group.length === 0) {
             errors.push({
-              field: `${fieldPrefix}.parallel_groups.${groupIndex}`,
-              message: 'Parallel group cannot be empty',
+              field: `${fieldPrefix}.parallel_groups[${groupIndex}]`,
+              message: `Parallel group ${groupIndex + 1} cannot be empty`,
               type: 'required',
             });
           }
@@ -581,6 +581,11 @@ function validateWorkflowModeSpecific(
             }
           });
         });
+
+        // Auto-fix suggestion for single agent in parallel mode
+        if (agents.length === 1 && workflow.parallel_groups.some(group => group.length === 0)) {
+          warnings.push('Single agent detected with empty parallel groups - consider using sequential mode instead');
+        }
       }
       break;
 

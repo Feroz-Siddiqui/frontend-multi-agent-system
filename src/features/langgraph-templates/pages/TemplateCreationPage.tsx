@@ -18,19 +18,17 @@ import {
   ArrowRight, 
   Save,
   Eye,
-  AlertCircle,
-  Plus
+  AlertCircle
 } from 'lucide-react';
 
 import { useTemplateCreation } from '../hooks';
 import {
   TemplateBasicInfoForm,
-  TemplatePreview,
-  WorkflowConfigurationForm
+  EnhancedTemplatePreview
 } from '../components';
 
-// Import our enhanced components
-import AgentConfigurationForm from '../components/AgentConfigurationForm';
+// Import our merged workflow builder
+import { MergedWorkflowBuilder } from '../components/workflow-visualizations/components/MergedWorkflowBuilder';
 
 // Import comprehensive validation
 import { validateTemplate, canProceedToStep } from '../utils/comprehensive-validation';
@@ -45,7 +43,7 @@ interface TemplateCreationPageProps {
   onSave?: (template: Template) => Promise<void>;
 }
 
-type Step = 'basic' | 'agents' | 'workflow' | 'preview';
+type Step = 'basic' | 'workflow' | 'preview';
 
 const STEPS: Array<{ id: Step; title: string; description: string }> = [
   {
@@ -54,14 +52,9 @@ const STEPS: Array<{ id: Step; title: string; description: string }> = [
     description: 'Template name and description',
   },
   {
-    id: 'agents',
-    title: 'Agent Configuration',
-    description: 'Configure AI agents with customizable names',
-  },
-  {
     id: 'workflow',
-    title: 'Workflow Configuration',
-    description: 'Configure execution flow and dependencies',
+    title: 'Configure Agents & Build Workflow',
+    description: 'Add agents and design your workflow in one unified interface',
   },
   {
     id: 'preview',
@@ -81,9 +74,6 @@ export function TemplateCreationPage({ initialTemplate, onSave }: TemplateCreati
   const {
     template,
     updateTemplate,
-    updateAgent,
-    addAgent,
-    removeAgent,
     updateWorkflow,
     workflowSummary,
     canSave,
@@ -151,10 +141,8 @@ export function TemplateCreationPage({ initialTemplate, onSave }: TemplateCreati
           switch (stepId) {
             case 'basic':
               return error.field.startsWith('name') || error.field.startsWith('description');
-            case 'agents':
-              return error.field.startsWith('agents');
             case 'workflow':
-              return error.field.startsWith('workflow');
+              return error.field.startsWith('agents') || error.field.startsWith('workflow');
             case 'preview':
               return true;
             default:
@@ -182,10 +170,8 @@ export function TemplateCreationPage({ initialTemplate, onSave }: TemplateCreati
       switch (stepId) {
         case 'basic':
           return error.field.startsWith('name') || error.field.startsWith('description');
-        case 'agents':
-          return error.field.startsWith('agents');
         case 'workflow':
-          return error.field.startsWith('workflow');
+          return error.field.startsWith('agents') || error.field.startsWith('workflow');
         case 'preview':
           return true; // All errors are relevant for preview
         default:
@@ -194,6 +180,11 @@ export function TemplateCreationPage({ initialTemplate, onSave }: TemplateCreati
     });
     
     return stepErrors.length;
+  };
+
+  // Helper function to update agents array
+  const handleUpdateAgents = (agents: typeof template.agents) => {
+    updateTemplate({ agents });
   };
 
   // Render current step content
@@ -209,36 +200,23 @@ export function TemplateCreationPage({ initialTemplate, onSave }: TemplateCreati
           />
         );
 
-      case 'agents':
-        return (
-          <AgentConfigurationForm
-            agents={template.agents}
-            onUpdateAgent={updateAgent}
-            onAddAgent={addAgent}
-            onRemoveAgent={removeAgent}
-            validation={{ isValid: true, errors: [], warnings: [] }}
-          />
-        );
-
       case 'workflow':
         return (
-          <WorkflowConfigurationForm
-            workflow={template.workflow}
+          <MergedWorkflowBuilder
             agents={template.agents}
-            template={template}
+            workflow={template.workflow}
             onUpdateWorkflow={updateWorkflow}
-            onUpdateTemplate={updateTemplate}
-            onUpdateAgent={updateAgent}
-            validation={{ isValid: true, errors: [], warnings: [] }}
+            onUpdateAgents={handleUpdateAgents}
           />
         );
 
       case 'preview':
         return (
-          <TemplatePreview
+          <EnhancedTemplatePreview
             template={template}
-            validation={{ isValid: true, errors: [], warnings: [] }}
+            validation={validationResult}
             workflowSummary={workflowSummary}
+            showActions={false}
           />
         );
 
@@ -376,12 +354,6 @@ export function TemplateCreationPage({ initialTemplate, onSave }: TemplateCreati
                   </Badge>
                 )}
               </CardTitle>
-              {currentStep === 'agents' && (
-                <Button onClick={() => addAgent()} className="flex items-center gap-2">
-                  <Plus className="h-4 w-4" />
-                  Add Agent
-                </Button>
-              )}
             </div>
           </div>
           <p className="text-muted-foreground">

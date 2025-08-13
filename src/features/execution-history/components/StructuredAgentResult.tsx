@@ -243,7 +243,7 @@ function TavilySourceCard({ source }: { source: TavilySource }) {
 
         {/* Images (if available) */}
         {source.images && source.images.length > 0 && (
-          <div>
+          <div onClick={(e) => e.stopPropagation()}>
             <EnhancedImageGallery
               images={source.images}
               title={`Images from ${source.title || 'Source'}`}

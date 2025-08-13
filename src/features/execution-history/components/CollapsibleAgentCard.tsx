@@ -61,10 +61,17 @@ export function CollapsibleAgentCard({ agentResult, defaultExpanded = false }: C
     <Card className={`w-full border ${config.border} transition-all duration-200`}>
       <Collapsible open={shouldBeExpanded} onOpenChange={isPrintMode ? undefined : setIsExpanded}>
         <CollapsibleTrigger asChild>
-          <CardHeader className="cursor-pointer hover:bg-gray-50 transition-colors pb-4">
+          <CardHeader className="cursor-pointer hover:bg-gray-50 transition-colors pb-4" onClick={(e) => {
+            // Only handle clicks that are directly on the header, not on child elements
+            if (e.target === e.currentTarget || (e.target as Element).closest('.collapsible-trigger-area')) {
+              // Let the collapsible handle this
+            } else {
+              e.stopPropagation();
+            }
+          }}>
             <div className="flex items-center justify-between">
               {/* Left side: Agent info */}
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 collapsible-trigger-area">
                 <div className={`w-10 h-10 rounded-lg ${config.bg} flex items-center justify-center`}>
                   <Icon className={`w-5 h-5 ${config.color}`} />
                 </div>
@@ -79,7 +86,7 @@ export function CollapsibleAgentCard({ agentResult, defaultExpanded = false }: C
               </div>
               
               {/* Right side: Key metrics + expand button */}
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-4 collapsible-trigger-area">
                 {/* Key Metrics */}
                 <div className="flex items-center gap-4 text-sm text-gray-500">
                   <div className="flex items-center gap-1">

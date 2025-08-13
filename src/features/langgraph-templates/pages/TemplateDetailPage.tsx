@@ -1,109 +1,147 @@
-import { useParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { 
   Bot,
   Workflow,
   History,
-  Settings
+  Settings,
+  Play,
+  Zap, 
+  ArrowRight, 
+  GitMerge, 
+  Network,
+  CheckCircle2,
+  AlertCircle,
+  Lock,
+  Globe,
+  Users
 } from 'lucide-react'
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 
 import { ErrorDisplay } from '@/components/common/ErrorDisplay'
 import { NotFoundDisplay } from '@/components/common/NotFoundDisplay'
+import { PageHeader } from '@/components/common/PageHeader'
 
 import { useTemplateDetail } from '../hooks/useTemplateDetail'
-import TemplateDetailHeader from '../components/template-detail/TemplateDetailHeader'
 import TemplateMetricsOverview from '../components/template-detail/TemplateMetricsOverview'
 import TemplateExecutionHistory from '../components/template-detail/TemplateExecutionHistory'
 import { EnhancedAgentCard } from '../components/template-detail/EnhancedAgentCard'
 
-// Import existing workflow visualization components
-import { SequentialWorkflowVisualization } from '../components/workflow-visualizations/SequentialWorkflowVisualization'
-import { ParallelWorkflowVisualization } from '../components/workflow-visualizations/ParallelWorkflowVisualization'
-import { ConditionalWorkflowVisualization } from '../components/workflow-visualizations/ConditionalWorkflowVisualization'
-import { LangGraphWorkflowVisualization } from '../components/workflow-visualizations/LangGraphWorkflowVisualization'
+// Import workflow preview component for read-only visualization
+import { WorkflowPreview } from '../components/workflow-visualizations/components/WorkflowPreview'
 
 import type { Template, WorkflowMode } from '../types'
 
 
 function WorkflowVisualization({ template }: { template: Template }) {
-  const mode = template.workflow.mode as WorkflowMode
-
-  // Create a no-op update function for read-only visualization
-  const handleUpdateWorkflow = () => {
-    // Read-only mode - no updates allowed
-  }
-
-  const handleUpdateAgent = () => {
-    // Read-only mode - no updates allowed
-  }
-
-  const handleConfigureAgent = () => {
-    // Read-only mode - no configuration allowed
-  }
-
-  switch (mode) {
-    case 'sequential':
-      return (
-        <SequentialWorkflowVisualization
-          agents={template.agents}
-          workflow={template.workflow}
-          onUpdateWorkflow={handleUpdateWorkflow}
-          onUpdateAgent={handleUpdateAgent}
-          onConfigureAgent={handleConfigureAgent}
-        />
-      )
-    case 'parallel':
-      return (
-        <ParallelWorkflowVisualization
-          agents={template.agents}
-          workflow={template.workflow}
-          onUpdateWorkflow={handleUpdateWorkflow}
-          onUpdateAgent={handleUpdateAgent}
-          onConfigureAgent={handleConfigureAgent}
-        />
-      )
-    case 'conditional':
-      return (
-        <ConditionalWorkflowVisualization
-          agents={template.agents}
-          workflow={template.workflow}
-          onUpdateWorkflow={handleUpdateWorkflow}
-          onUpdateAgent={handleUpdateAgent}
-          onConfigureAgent={handleConfigureAgent}
-        />
-      )
-    case 'langgraph':
-      return (
-        <LangGraphWorkflowVisualization
-          agents={template.agents}
-          workflow={template.workflow}
-          onUpdateWorkflow={handleUpdateWorkflow}
-          onUpdateAgent={handleUpdateAgent}
-          onConfigureAgent={handleConfigureAgent}
-        />
-      )
-    default:
-      return (
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Main Workflow Preview */}
+      <div className="lg:col-span-2">
+        <div className="h-[500px] w-full border rounded-lg bg-gray-50 overflow-hidden">
+          <WorkflowPreview
+            agents={template.agents}
+            workflow={template.workflow}
+            className="h-full w-full"
+          />
+        </div>
+      </div>
+      
+      {/* Additional Workflow Information */}
+      <div className="lg:col-span-1 space-y-4">
         <Card>
-          <CardContent className="p-6">
-            <div className="text-center text-gray-500">
-              <Workflow className="w-12 h-12 mx-auto mb-2 opacity-50" />
-              <p className="text-lg font-medium mb-1">Workflow Visualization</p>
-              <p className="text-sm">
-                {template.workflow.mode.charAt(0).toUpperCase() + template.workflow.mode.slice(1)} workflow with {template.agents.length} agents
-              </p>
+          <CardHeader>
+            <CardTitle className="text-base">Workflow Details</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="grid grid-cols-2 gap-2 text-sm">
+              <span className="text-gray-600">Mode:</span>
+              <span className="font-medium capitalize">{template.workflow.mode}</span>
+            </div>
+            <div className="grid grid-cols-2 gap-2 text-sm">
+              <span className="text-gray-600">Agents:</span>
+              <span className="font-medium">{template.agents.length}</span>
+            </div>
+            <div className="grid grid-cols-2 gap-2 text-sm">
+              <span className="text-gray-600">Connections:</span>
+              <span className="font-medium">{template.workflow.graph_structure?.edges?.length || 0}</span>
+            </div>
+            {template.workflow.entry_point && (
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                <span className="text-gray-600">Entry Point:</span>
+                <span className="font-medium">
+                  {template.agents.find(a => (a.id || a.name) === template.workflow.entry_point)?.name || 'Unknown'}
+                </span>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Execution Features</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-gray-600">Checkpointing:</span>
+              <Badge variant="outline" className="text-xs">
+                {template.workflow.enable_checkpointing ? 'Enabled' : 'Disabled'}
+              </Badge>
+            </div>
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-gray-600">Streaming:</span>
+              <Badge variant="outline" className="text-xs">
+                {template.workflow.enable_streaming ? 'Enabled' : 'Disabled'}
+              </Badge>
+            </div>
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-gray-600">Time Travel:</span>
+              <Badge variant="outline" className="text-xs">
+                {template.workflow.enable_time_travel ? 'Enabled' : 'Disabled'}
+              </Badge>
             </div>
           </CardContent>
         </Card>
-      )
-  }
+      </div>
+    </div>
+  )
 }
+
+// Workflow mode configurations
+const WORKFLOW_MODE_CONFIG = {
+  sequential: {
+    icon: ArrowRight,
+    label: 'Sequential',
+    color: 'bg-blue-50 text-blue-700 border-blue-200',
+    iconColor: 'text-blue-600'
+  },
+  parallel: {
+    icon: Zap,
+    label: 'Parallel',
+    color: 'bg-green-50 text-green-700 border-green-200',
+    iconColor: 'text-green-600'
+  },
+  conditional: {
+    icon: GitMerge,
+    label: 'Conditional',
+    color: 'bg-orange-50 text-orange-700 border-orange-200',
+    iconColor: 'text-orange-600'
+  },
+  langgraph: {
+    icon: Network,
+    label: 'LangGraph',
+    color: 'bg-purple-50 text-purple-700 border-purple-200',
+    iconColor: 'text-purple-600'
+  }
+} as const
 
 export function TemplateDetailPage() {
   const { templateId } = useParams<{ templateId: string }>()
+  const navigate = useNavigate()
   
   // Move hook call to top level to avoid conditional calling
   const { template, isLoading, error, metrics, refetch } = useTemplateDetail(templateId || '')
@@ -156,24 +194,118 @@ export function TemplateDetailPage() {
     return <NotFoundDisplay message="Template not found" />
   }
 
+  const workflowConfig = WORKFLOW_MODE_CONFIG[template.workflow.mode as WorkflowMode]
+  const WorkflowIcon = workflowConfig.icon
+
+  const handleExecute = () => {
+    // Navigate to execution page
+    navigate(`/templates/execute?templateId=${template.id}`)
+  }
+
   return (
-    <div className="container mx-auto px-4 py-6 space-y-8">
-      {/* Header */}
-      <TemplateDetailHeader template={template} />
+    <div className="space-y-6">
+      {/* Page Header */}
+      <PageHeader
+        title={template.name}
+        description={template.description || undefined}
+        actions={
+          <Button 
+            size="lg" 
+            onClick={handleExecute}
+            disabled={!template.is_active}
+            className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm hover:shadow-md transition-all px-6"
+          >
+            <Play className="w-5 h-5 mr-2" />
+            Execute Template
+          </Button>
+        }
+      />
+
+      {/* Template Status Badges */}
+      <div className="flex items-center gap-2 mb-6">
+        <Badge 
+          variant="secondary" 
+          className={`${workflowConfig.color} font-medium text-sm px-3 py-1`}
+        >
+          <WorkflowIcon className={`w-4 h-4 mr-1.5 ${workflowConfig.iconColor}`} />
+          {workflowConfig.label}
+        </Badge>
+        
+        <Badge 
+          variant={template.is_active ? "default" : "secondary"}
+          className={`text-sm px-3 py-1 ${
+            template.is_active 
+              ? 'bg-green-50 text-green-700 border-green-200' 
+              : 'bg-gray-50 text-gray-600 border-gray-200'
+          }`}
+        >
+          {template.is_active ? (
+            <CheckCircle2 className="w-4 h-4 mr-1.5" />
+          ) : (
+            <AlertCircle className="w-4 h-4 mr-1.5" />
+          )}
+          {template.is_active ? 'Active' : 'Inactive'}
+        </Badge>
+
+        <Badge 
+          variant="outline" 
+          className="text-sm px-3 py-1 text-gray-600 border-gray-200"
+        >
+          {template.is_public ? (
+            <>
+              <Globe className="w-4 h-4 mr-1.5 text-blue-500" />
+              Public
+            </>
+          ) : (
+            <>
+              <Lock className="w-4 h-4 mr-1.5 text-gray-500" />
+              Private
+            </>
+          )}
+        </Badge>
+
+        <Badge 
+          variant="outline" 
+          className="text-sm px-3 py-1 text-gray-600 border-gray-200"
+        >
+          <Users className="w-4 h-4 mr-1.5 text-purple-500" />
+          {template.agents.length} {template.agents.length === 1 ? 'Agent' : 'Agents'}
+        </Badge>
+      </div>
+
+      {/* Additional Template Info */}
+      <div className="flex items-center gap-6 text-sm text-gray-500 pb-6 border-b border-gray-100">
+        <div>
+          <span className="font-medium">Created:</span>{' '}
+          {template.created_at ? new Date(template.created_at).toLocaleDateString() : 'Unknown'}
+        </div>
+        <div>
+          <span className="font-medium">Updated:</span>{' '}
+          {template.updated_at ? new Date(template.updated_at).toLocaleDateString() : 'Unknown'}
+        </div>
+        {template.created_by && (
+          <div>
+            <span className="font-medium">Created by:</span>{' '}
+            <span className="text-gray-700">
+              {template.created_by_name || template.created_by}
+            </span>
+          </div>
+        )}
+      </div>
 
       {/* Metrics Overview */}
       <TemplateMetricsOverview template={template} metrics={metrics} />
 
       {/* Main Content Tabs */}
-      <Tabs defaultValue="agents" className="space-y-6">
+      <Tabs defaultValue="workflow" className="space-y-6">
         <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="agents" className="flex items-center gap-2">
-            <Bot className="w-4 h-4" />
-            Agents
-          </TabsTrigger>
           <TabsTrigger value="workflow" className="flex items-center gap-2">
             <Workflow className="w-4 h-4" />
             Workflow
+          </TabsTrigger>
+          <TabsTrigger value="agents" className="flex items-center gap-2">
+            <Bot className="w-4 h-4" />
+            Agents
           </TabsTrigger>
           <TabsTrigger value="history" className="flex items-center gap-2">
             <History className="w-4 h-4" />
@@ -184,6 +316,16 @@ export function TemplateDetailPage() {
             Configuration
           </TabsTrigger>
         </TabsList>
+
+        {/* Workflow Tab */}
+        <TabsContent value="workflow" className="space-y-6">
+          <div>
+            <h3 className="text-lg font-semibold mb-4">
+              Workflow Visualization
+            </h3>
+            <WorkflowVisualization template={template} />
+          </div>
+        </TabsContent>
 
         {/* Agents Tab */}
         <TabsContent value="agents" className="space-y-6">
@@ -196,16 +338,6 @@ export function TemplateDetailPage() {
                 <EnhancedAgentCard key={agent.id || index} agent={agent} />
               ))}
             </div>
-          </div>
-        </TabsContent>
-
-        {/* Workflow Tab */}
-        <TabsContent value="workflow" className="space-y-6">
-          <div>
-            <h3 className="text-lg font-semibold mb-4">
-              Workflow Visualization
-            </h3>
-            <WorkflowVisualization template={template} />
           </div>
         </TabsContent>
 
