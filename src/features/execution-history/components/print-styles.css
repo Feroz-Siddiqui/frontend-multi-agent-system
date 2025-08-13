@@ -1,0 +1,171 @@
+/**
+ * Print-specific CSS for PDF generation
+ * Optimized layout and styling for print/PDF output
+ */
+
+/* Print media queries */
+@media print {
+  /* Page setup */
+  @page {
+    margin: 1cm;
+    size: A4;
+  }
+
+  /* Hide interactive elements */
+  .no-print,
+  button:not(.print-keep),
+  .cursor-pointer {
+    display: none !important;
+  }
+
+  /* Show print-only elements */
+  .print-only {
+    display: block !important;
+  }
+
+  /* Page break controls */
+  .page-break {
+    page-break-before: always;
+  }
+
+  .avoid-break {
+    page-break-inside: avoid;
+  }
+
+  /* Remove shadows and effects that don't print well */
+  .shadow-sm,
+  .shadow,
+  .shadow-md,
+  .shadow-lg {
+    box-shadow: none !important;
+  }
+
+  /* Ensure backgrounds and colors print */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  /* Optimize typography for print */
+  body {
+    font-size: 12pt !important;
+    line-height: 1.4 !important;
+  }
+
+  h1 { font-size: 24pt !important; }
+  h2 { font-size: 20pt !important; }
+  h3 { font-size: 16pt !important; }
+  h4 { font-size: 14pt !important; }
+
+  /* Expand all collapsible content */
+  [data-radix-collapsible-content] {
+    display: block !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* Optimize tables */
+  table {
+    page-break-inside: avoid;
+  }
+
+  thead {
+    display: table-header-group;
+  }
+
+  tr {
+    page-break-inside: avoid;
+  }
+}
+
+/* Print mode styles (when .print-mode class is active) */
+.print-mode {
+  /* Force expand all collapsible content */
+  [data-radix-collapsible-content] {
+    display: block !important;
+    height: auto !important;
+    overflow: visible !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  /* Remove interactive cursors */
+  .cursor-pointer {
+    cursor: default !important;
+  }
+
+  /* Hide buttons except those marked to keep */
+  button:not(.print-keep) {
+    display: none !important;
+  }
+
+  /* Remove hover effects */
+  .hover\:shadow-md:hover,
+  .hover\:bg-gray-50:hover {
+    box-shadow: none !important;
+    background-color: transparent !important;
+  }
+
+  /* Ensure proper spacing */
+  .card {
+    margin-bottom: 1.5rem;
+  }
+
+  /* Optimize text colors for print */
+  .text-gray-500 { color: #6b7280 !important; }
+  .text-gray-600 { color: #4b5563 !important; }
+  .text-gray-700 { color: #374151 !important; }
+  .text-gray-900 { color: #111827 !important; }
+}
+
+/* Utility classes for print optimization */
+.print-page-break {
+  page-break-before: always;
+}
+
+.print-avoid-break {
+  page-break-inside: avoid;
+}
+
+.print-keep-together {
+  page-break-inside: avoid;
+}
+
+/* Component-specific print optimizations */
+.execution-header {
+  page-break-after: avoid;
+}
+
+.metrics-overview {
+  page-break-inside: avoid;
+}
+
+.agent-card {
+  page-break-inside: avoid;
+  margin-bottom: 1.5rem;
+}
+
+.timeline-section {
+  page-break-before: auto;
+}
+
+/* Ensure proper line breaks in long text */
+.break-words {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* Color adjustments for better print visibility */
+@media print {
+  .bg-blue-50 { background-color: #eff6ff !important; }
+  .bg-green-50 { background-color: #f0fdf4 !important; }
+  .bg-red-50 { background-color: #fef2f2 !important; }
+  .bg-yellow-50 { background-color: #fefce8 !important; }
+  .bg-gray-50 { background-color: #f9fafb !important; }
+  
+  .border-blue-200 { border-color: #bfdbfe !important; }
+  .border-green-200 { border-color: #bbf7d0 !important; }
+  .border-red-200 { border-color: #fecaca !important; }
+  .border-yellow-200 { border-color: #fef3c7 !important; }
+  .border-gray-200 { border-color: #e5e7eb !important; }
+}

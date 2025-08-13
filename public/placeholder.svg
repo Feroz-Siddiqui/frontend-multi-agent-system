@@ -1,0 +1,104 @@
+<svg width="800" height="600" viewBox="0 0 800 600" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:0.1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:0.1" />
+    </linearGradient>
+    
+    <linearGradient id="nodeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4f46e5;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#7c3aed;stop-opacity:1" />
+    </linearGradient>
+    
+    <linearGradient id="tavilyGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#059669;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0d9488;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="800" height="600" fill="url(#bgGradient)"/>
+  
+  <!-- Main Title -->
+  <text x="400" y="80" text-anchor="middle" fill="#1f2937" font-family="system-ui" font-size="28" font-weight="bold">
+    Multi-Agent Workflow System
+  </text>
+  <text x="400" y="110" text-anchor="middle" fill="#6b7280" font-family="system-ui" font-size="16">
+    Powered by LangGraph &amp; Tavily Integration
+  </text>
+  
+  <!-- Central Hub Node -->
+  <circle cx="400" cy="300" r="30" fill="url(#nodeGradient)" opacity="0.9">
+    <animate attributeName="r" values="30;35;30" dur="3s" repeatCount="indefinite"/>
+  </circle>
+  <text x="400" y="308" text-anchor="middle" fill="white" font-family="system-ui" font-size="12" font-weight="bold">HUB</text>
+  
+  <!-- Agent Nodes -->
+  <!-- Search Agent -->
+  <circle cx="320" cy="240" r="20" fill="url(#tavilyGradient)" opacity="0.8">
+    <animate attributeName="opacity" values="0.6;1;0.6" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  <text x="320" y="246" text-anchor="middle" fill="white" font-family="system-ui" font-size="9">SEARCH</text>
+  
+  <!-- Analysis Agent -->
+  <circle cx="480" cy="240" r="20" fill="url(#nodeGradient)" opacity="0.8">
+    <animate attributeName="opacity" values="0.6;1;0.6" dur="2.5s" repeatCount="indefinite"/>
+  </circle>
+  <text x="480" y="246" text-anchor="middle" fill="white" font-family="system-ui" font-size="9">ANALYZE</text>
+  
+  <!-- Extract Agent -->
+  <circle cx="320" cy="360" r="20" fill="url(#tavilyGradient)" opacity="0.8">
+    <animate attributeName="opacity" values="0.6;1;0.6" dur="3s" repeatCount="indefinite"/>
+  </circle>
+  <text x="320" y="366" text-anchor="middle" fill="white" font-family="system-ui" font-size="9">EXTRACT</text>
+  
+  <!-- Synthesis Agent -->
+  <circle cx="480" cy="360" r="20" fill="url(#nodeGradient)" opacity="0.8">
+    <animate attributeName="opacity" values="0.6;1;0.6" dur="2.2s" repeatCount="indefinite"/>
+  </circle>
+  <text x="480" y="366" text-anchor="middle" fill="white" font-family="system-ui" font-size="9">SYNTH</text>
+  
+  <!-- Connections -->
+  <g stroke="#4f46e5" stroke-width="2" opacity="0.5">
+    <line x1="400" y1="300" x2="320" y2="240">
+      <animate attributeName="opacity" values="0.3;0.7;0.3" dur="2s" repeatCount="indefinite"/>
+    </line>
+    <line x1="400" y1="300" x2="480" y2="240">
+      <animate attributeName="opacity" values="0.3;0.7;0.3" dur="2.5s" repeatCount="indefinite"/>
+    </line>
+    <line x1="400" y1="300" x2="320" y2="360">
+      <animate attributeName="opacity" values="0.3;0.7;0.3" dur="3s" repeatCount="indefinite"/>
+    </line>
+    <line x1="400" y1="300" x2="480" y2="360">
+      <animate attributeName="opacity" values="0.3;0.7;0.3" dur="2.2s" repeatCount="indefinite"/>
+    </line>
+  </g>
+  
+  <!-- Tavily Integration Badge -->
+  <rect x="120" y="135" width="80" height="30" rx="15" fill="url(#tavilyGradient)" opacity="0.9">
+    <animate attributeName="opacity" values="0.7;1;0.7" dur="2s" repeatCount="indefinite"/>
+  </rect>
+  <text x="160" y="155" text-anchor="middle" fill="white" font-family="system-ui" font-size="12" font-weight="bold">TAVILY</text>
+  
+  <!-- LangGraph Badge -->
+  <rect x="600" y="435" width="90" height="30" rx="15" fill="url(#nodeGradient)" opacity="0.9">
+    <animate attributeName="opacity" values="0.7;1;0.7" dur="2.5s" repeatCount="indefinite"/>
+  </rect>
+  <text x="645" y="455" text-anchor="middle" fill="white" font-family="system-ui" font-size="12" font-weight="bold">LANGGRAPH</text>
+  
+  <!-- Status Indicators -->
+  <circle cx="150" cy="500" r="8" fill="#10b981" opacity="0.8">
+    <animate attributeName="opacity" values="0.5;1;0.5" dur="1.5s" repeatCount="indefinite"/>
+  </circle>
+  <text x="170" y="506" fill="#374151" font-family="system-ui" font-size="14">Active Workflows</text>
+  
+  <circle cx="350" cy="500" r="8" fill="#3b82f6" opacity="0.8">
+    <animate attributeName="opacity" values="0.5;1;0.5" dur="1.8s" repeatCount="indefinite"/>
+  </circle>
+  <text x="370" y="506" fill="#374151" font-family="system-ui" font-size="14">Processing Data</text>
+  
+  <circle cx="550" cy="500" r="8" fill="#8b5cf6" opacity="0.8">
+    <animate attributeName="opacity" values="0.5;1;0.5" dur="2.2s" repeatCount="indefinite"/>
+  </circle>
+  <text x="570" y="506" fill="#374151" font-family="system-ui" font-size="14">AI Agents Ready</text>
+</svg>
