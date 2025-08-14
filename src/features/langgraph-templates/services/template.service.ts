@@ -83,8 +83,16 @@ export class TemplateService {
    */
   async updateTemplate(id: string, template: Partial<Template>): Promise<Template> {
     try {
-      const response = await this.apiClient.put<Template>(`/templates/${id}`, template);
-      return response;
+      // Backend returns {template_id, message} format for updates
+      const response = await this.apiClient.put<{template_id: string; message: string}>(`/api/templates/${id}`, template);
+      
+      // Fetch the updated template to return full Template object
+      const updatedTemplate = await this.getTemplate(response.template_id);
+      if (!updatedTemplate) {
+        throw new Error('Failed to retrieve updated template');
+      }
+      
+      return updatedTemplate;
     } catch (error) {
       console.error('Failed to update template:', error);
       throw new Error('Failed to update template. Please try again.');
@@ -96,7 +104,7 @@ export class TemplateService {
    */
   async deleteTemplate(id: string): Promise<void> {
     try {
-      await this.apiClient.delete(`/templates/${id}`);
+      await this.apiClient.delete(`/api/templates/${id}`);
     } catch (error) {
       console.error('Failed to delete template:', error);
       throw new Error('Failed to delete template. Please try again.');
@@ -114,8 +122,10 @@ export class TemplateService {
       if (params.is_public !== undefined) queryParams.append('is_public', params.is_public.toString());
 
       const url = `/api/templates${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
-      const response = await this.apiClient.get<Template[]>(url);
-      return response;
+      const response = await this.apiClient.get<TemplateListResponse>(url);
+      
+      // Backend returns paginated response, extract templates array
+      return response.templates || [];
     } catch (error) {
       console.error('Failed to list templates:', error);
       throw new Error('Failed to load templates. Please try again.');

@@ -153,7 +153,7 @@ export class TemplateValidator {
     const hasLegacyParallelGroups = workflow.parallel_groups && workflow.parallel_groups.length > 0;
     const hasLegacyConditions = workflow.conditions && Object.keys(workflow.conditions).length > 0;
     
-    return hasGraphStructure || hasLegacySequence || hasLegacyParallelGroups || hasLegacyConditions;
+    return Boolean(hasGraphStructure || hasLegacySequence || hasLegacyParallelGroups || hasLegacyConditions);
   }
 
   /**

@@ -7,6 +7,7 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
 import { Button } from '../../../components/ui/button';
 import { Progress } from '../../../components/ui/progress';
@@ -65,6 +66,7 @@ const STEPS: Array<{ id: Step; title: string; description: string }> = [
 
 export function TemplateCreationPage({ initialTemplate, onSave }: TemplateCreationPageProps) {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [currentStep, setCurrentStep] = useState<Step>('basic');
   const [showValidation, setShowValidation] = useState(false);
   
@@ -82,13 +84,32 @@ export function TemplateCreationPage({ initialTemplate, onSave }: TemplateCreati
   } = useTemplateCreation({
     initialTemplate,
     onSave: onSave || (async (template) => {
-      // Default save handler - navigate to templates after successful save
-      if (template.id) {
-        await templateService.updateTemplate(template.id, template);
-      } else {
-        await templateService.createTemplate(template);
+      // Default save handler - wait for backend success and invalidate cache
+      try {
+        let savedTemplate: Template;
+        
+        if (template.id) {
+          console.log('🔄 Updating existing template:', template.id);
+          savedTemplate = await templateService.updateTemplate(template.id, template);
+          console.log('✅ Template updated successfully:', savedTemplate);
+        } else {
+          console.log('🔄 Creating new template:', template.name);
+          savedTemplate = await templateService.createTemplate(template);
+          console.log('✅ Template created successfully:', savedTemplate);
+        }
+        
+        // Invalidate template list cache to ensure fresh data
+        await queryClient.invalidateQueries({ queryKey: ['templates-paginated'] });
+        console.log('🔄 Template cache invalidated');
+        
+        // Navigate to templates after successful save and cache invalidation
+        navigate('/templates');
+        console.log('🎉 Navigation completed');
+        
+      } catch (error) {
+        console.error('❌ Failed to save template:', error);
+        throw error; // Re-throw to let the UI handle the error
       }
-      navigate('/templates');
     }),
   });
 

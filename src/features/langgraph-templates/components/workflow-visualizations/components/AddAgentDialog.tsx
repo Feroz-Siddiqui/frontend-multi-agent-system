@@ -257,7 +257,10 @@ export function AddAgentDialog({ isOpen, onClose, onAddAgent }: AddAgentDialogPr
                     max="2"
                     step="0.1"
                     value={formData.llm_config.temperature}
-                    onChange={(e) => updateLLMConfig({ temperature: parseFloat(e.target.value) || 0 })}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      updateLLMConfig({ temperature: value === '' ? 0.3 : parseFloat(value) || 0.3 });
+                    }}
                   />
                 </div>
 
@@ -270,7 +273,10 @@ export function AddAgentDialog({ isOpen, onClose, onAddAgent }: AddAgentDialogPr
                     max="4000"
                     step="100"
                     value={formData.llm_config.max_tokens}
-                    onChange={(e) => updateLLMConfig({ max_tokens: parseInt(e.target.value) || 2500 })}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      updateLLMConfig({ max_tokens: value === '' ? 2500 : parseInt(value) || 2500 });
+                    }}
                   />
                 </div>
               </div>
@@ -285,7 +291,10 @@ export function AddAgentDialog({ isOpen, onClose, onAddAgent }: AddAgentDialogPr
                     min="30"
                     max="3600"
                     value={formData.timeout_seconds}
-                    onChange={(e) => updateFormData({ timeout_seconds: parseInt(e.target.value) || 600 })}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      updateFormData({ timeout_seconds: value === '' ? 600 : parseInt(value) || 600 });
+                    }}
                   />
                 </div>
 
@@ -297,7 +306,10 @@ export function AddAgentDialog({ isOpen, onClose, onAddAgent }: AddAgentDialogPr
                     min="0"
                     max="3"
                     value={formData.retry_count}
-                    onChange={(e) => updateFormData({ retry_count: parseInt(e.target.value) || 0 })}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      updateFormData({ retry_count: value === '' ? 0 : parseInt(value) || 0 });
+                    }}
                   />
                 </div>
 
@@ -309,7 +321,10 @@ export function AddAgentDialog({ isOpen, onClose, onAddAgent }: AddAgentDialogPr
                     min="1"
                     max="10"
                     value={formData.priority}
-                    onChange={(e) => updateFormData({ priority: parseInt(e.target.value) || 1 })}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      updateFormData({ priority: value === '' ? 1 : parseInt(value) || 1 });
+                    }}
                   />
                 </div>
               </div>

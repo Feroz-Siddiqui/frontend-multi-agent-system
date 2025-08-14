@@ -106,7 +106,11 @@ export function useTemplateCreation(options: UseTemplateCreationOptions = {}): U
 
   // Update template
   const updateTemplate = useCallback((updates: Partial<Template>) => {
-    setTemplate(prev => ({ ...prev, ...updates }));
+    setTemplate(prev => {
+      const newTemplate = { ...prev, ...updates };
+      console.log('🔄 Template updated:', { updates, newTemplate });
+      return newTemplate;
+    });
   }, []);
 
   // Helper function to create smart groups by dividing agents into groups of specified size
@@ -348,15 +352,14 @@ export function useTemplateCreation(options: UseTemplateCreationOptions = {}): U
 
     setIsSubmitting(true);
     try {
-      let savedTemplate: Template;
-      
       if (onSave) {
-        // Use custom save handler if provided
+        // Use custom save handler if provided - this handles the entire flow
         await onSave(template);
-        // For custom handlers, we assume success if no error is thrown
         console.log('✅ Template saved successfully via custom handler');
       } else {
         // Use default template service with detailed logging
+        let savedTemplate: Template;
+        
         if (template.id) {
           console.log('🔄 Updating existing template:', template.id);
           savedTemplate = await templateService.updateTemplate(template.id, template);

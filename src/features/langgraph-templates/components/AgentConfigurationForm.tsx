@@ -335,7 +335,10 @@ function AgentConfigurationForm({
                           min="1"
                           max="10"
                           value={currentAgent.priority}
-                          onChange={(e) => handleAgentUpdate(activeAgentIndex, 'priority', parseInt(e.target.value))}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            handleAgentUpdate(activeAgentIndex, 'priority', value === '' ? 1 : parseInt(value) || 1);
+                          }}
                         />
                         <p className="text-xs text-muted-foreground">
                           Higher priority agents execute first in parallel workflows
@@ -352,7 +355,10 @@ function AgentConfigurationForm({
                           min="30"
                           max="3600"
                           value={currentAgent.timeout_seconds}
-                          onChange={(e) => handleAgentUpdate(activeAgentIndex, 'timeout_seconds', parseInt(e.target.value))}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            handleAgentUpdate(activeAgentIndex, 'timeout_seconds', value === '' ? 600 : parseInt(value) || 600);
+                          }}
                         />
                       </div>
                     </div>
@@ -445,7 +451,10 @@ function AgentConfigurationForm({
                         max="2"
                         step="0.1"
                         value={currentAgent.llm_config.temperature}
-                        onChange={(e) => handleLLMConfigUpdate(activeAgentIndex, 'temperature', parseFloat(e.target.value))}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          handleLLMConfigUpdate(activeAgentIndex, 'temperature', value === '' ? 0.3 : parseFloat(value) || 0.3);
+                        }}
                       />
                     </div>
 
@@ -457,7 +466,10 @@ function AgentConfigurationForm({
                         min="100"
                         max="4000"
                         value={currentAgent.llm_config.max_tokens}
-                        onChange={(e) => handleLLMConfigUpdate(activeAgentIndex, 'max_tokens', parseInt(e.target.value))}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          handleLLMConfigUpdate(activeAgentIndex, 'max_tokens', value === '' ? 2500 : parseInt(value) || 2500);
+                        }}
                       />
                     </div>
 
@@ -469,7 +481,10 @@ function AgentConfigurationForm({
                         min="0"
                         max="3"
                         value={currentAgent.retry_count}
-                        onChange={(e) => handleAgentUpdate(activeAgentIndex, 'retry_count', parseInt(e.target.value))}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          handleAgentUpdate(activeAgentIndex, 'retry_count', value === '' ? 0 : parseInt(value) || 0);
+                        }}
                       />
                     </div>
                   </div>
@@ -545,9 +560,10 @@ function AgentConfigurationForm({
                                 min="1"
                                 max="50"
                                 value={currentAgent.tavily_config.max_results}
-                                onChange={(e) => 
-                                  handleTavilyConfigUpdate(activeAgentIndex, 'max_results', parseInt(e.target.value))
-                                }
+                                onChange={(e) => {
+                                  const value = e.target.value;
+                                  handleTavilyConfigUpdate(activeAgentIndex, 'max_results', value === '' ? 3 : parseInt(value) || 3);
+                                }}
                               />
                             </div>
                           </div>

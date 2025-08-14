@@ -340,7 +340,10 @@ export function TavilyConfigurationPanel({
                       min="1"
                       max="20"
                       value={config.max_results}
-                      onChange={(e) => handleUpdate('max_results', parseInt(e.target.value))}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        handleUpdate('max_results', value === '' ? 3 : parseInt(value) || 3);
+                      }}
                     />
                   </div>
 
@@ -472,7 +475,10 @@ export function TavilyConfigurationPanel({
                           min="1"
                           max="5"
                           value={config.max_crawl_depth}
-                          onChange={(e) => handleUpdate('max_crawl_depth', parseInt(e.target.value))}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            handleUpdate('max_crawl_depth', value === '' ? 3 : parseInt(value) || 3);
+                          }}
                         />
                       </div>
 
@@ -483,7 +489,10 @@ export function TavilyConfigurationPanel({
                           min="1"
                           max="100"
                           value={config.crawl_limit}
-                          onChange={(e) => handleUpdate('crawl_limit', parseInt(e.target.value))}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            handleUpdate('crawl_limit', value === '' ? 50 : parseInt(value) || 50);
+                          }}
                         />
                       </div>
                     </div>
@@ -516,7 +525,10 @@ export function TavilyConfigurationPanel({
                           min="1"
                           max="3"
                           value={config.max_map_depth}
-                          onChange={(e) => handleUpdate('max_map_depth', parseInt(e.target.value))}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            handleUpdate('max_map_depth', value === '' ? 2 : parseInt(value) || 2);
+                          }}
                         />
                       </div>
                     </div>
@@ -556,7 +568,10 @@ export function TavilyConfigurationPanel({
                         min="1"
                         max="50"
                         value={config.max_credits_per_agent}
-                        onChange={(e) => handleUpdate('max_credits_per_agent', parseInt(e.target.value))}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          handleUpdate('max_credits_per_agent', value === '' ? 10 : parseInt(value) || 10);
+                        }}
                       />
                     </div>
 
@@ -565,8 +580,8 @@ export function TavilyConfigurationPanel({
                       <Input
                         type="number"
                         min="0"
-                        value={config.estimated_credits}
-                        onChange={(e) => handleUpdate('estimated_credits', parseInt(e.target.value))}
+                        value={config.estimated_credits || 0}
+                        onChange={(e) => handleUpdate('estimated_credits', parseInt(e.target.value) || 0)}
                         disabled
                       />
                     </div>
@@ -591,7 +606,10 @@ export function TavilyConfigurationPanel({
                         min="10"
                         max="120"
                         value={config.timeout_seconds}
-                        onChange={(e) => handleUpdate('timeout_seconds', parseInt(e.target.value))}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          handleUpdate('timeout_seconds', value === '' ? 30 : parseInt(value) || 30);
+                        }}
                       />
                     </div>
 
@@ -602,7 +620,10 @@ export function TavilyConfigurationPanel({
                         min="0"
                         max="3"
                         value={config.retry_attempts}
-                        onChange={(e) => handleUpdate('retry_attempts', parseInt(e.target.value))}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          handleUpdate('retry_attempts', value === '' ? 2 : parseInt(value) || 2);
+                        }}
                       />
                     </div>
                   </div>

@@ -270,8 +270,8 @@ export function WorkflowConfigurationForm({
                       type="number"
                       min="30"
                       max="3600"
-                      value={agent.hitl_config.timeout_seconds}
-                      onChange={(e) => updateHITLConfig(agentIndex, 'timeout_seconds', parseInt(e.target.value))}
+                      value={agent.hitl_config.timeout_seconds || 300}
+                      onChange={(e) => updateHITLConfig(agentIndex, 'timeout_seconds', parseInt(e.target.value) || 300)}
                     />
                   </div>
                 </div>
@@ -297,9 +297,9 @@ export function WorkflowConfigurationForm({
                 type="number"
                 min="60"
                 max="7200"
-                value={workflow.timeout_seconds}
+                value={workflow.timeout_seconds || 1800}
                 onChange={(e) => 
-                  onUpdateWorkflow({ timeout_seconds: parseInt(e.target.value) })
+                  onUpdateWorkflow({ timeout_seconds: parseInt(e.target.value) || 1800 })
                 }
               />
               <div className="text-xs text-muted-foreground">
@@ -315,7 +315,7 @@ export function WorkflowConfigurationForm({
                 max={agents.length}
                 value={workflow.failure_threshold || 0}
                 onChange={(e) => 
-                  onUpdateWorkflow({ failure_threshold: parseInt(e.target.value) })
+                  onUpdateWorkflow({ failure_threshold: parseInt(e.target.value) || 0 })
                 }
               />
               <div className="text-xs text-muted-foreground">

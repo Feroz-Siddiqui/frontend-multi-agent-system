@@ -3,7 +3,6 @@
  * Use this to test the image gallery functionality independently
  */
 
-import React from 'react';
 import { EnhancedImageGallery } from './image-gallery';
 
 // Sample test images
